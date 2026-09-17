@@ -1,6 +1,6 @@
 module github.com/truenas/truenas-csi
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/coder/websocket v1.8.12
@@ -13,9 +13,9 @@ require (
 	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/klog/v2 v2.130.1
-	k8s.io/mount-utils v0.34.1
-	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
+	k8s.io/klog/v2 v2.140.0
+	k8s.io/mount-utils v0.37.0
+	k8s.io/utils v0.0.0-20260626114624-be93311217bd
 )
 
 require (
