@@ -1,6 +1,6 @@
 module github.com/truenas/truenas-csi
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/coder/websocket v1.8.12
@@ -9,7 +9,7 @@ require (
 	github.com/kubernetes-csi/csi-lib-iscsi v0.0.0-20240130114156-dd26709d0dcc
 	github.com/kubernetes-csi/csi-test/v5 v5.4.0
 	github.com/prometheus/client_golang v1.24.1
-	golang.org/x/sync v0.22.0
+	golang.org/x/sync v0.23.0
 	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
