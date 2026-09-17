@@ -7,7 +7,7 @@ COPY . .
 ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X github.com/truenas/truenas-csi/pkg/driver.DRIVER_VERSION=${VERSION}" -o truenas-csi-driver cmd/main.go
 
-FROM alpine:3.19
+FROM alpine:3.24
 # On Alpine, `resize2fs` lives in `e2fsprogs-extra` (not the base `e2fsprogs`),
 # and `xfs_growfs` lives in `xfsprogs-extra`. The CSI driver calls both during
 # MountDevice (idempotent FS-resize after attach) and NodeExpandVolume (for
