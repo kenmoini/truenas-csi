@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/coder/websocket v1.8.12
 	github.com/container-storage-interface/spec v1.12.0
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/kubernetes-csi/csi-lib-iscsi v0.0.0-20240130114156-dd26709d0dcc
 	github.com/kubernetes-csi/csi-test/v5 v5.4.0
 	github.com/prometheus/client_golang v1.24.1
