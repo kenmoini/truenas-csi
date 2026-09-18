@@ -1,0 +1,59 @@
+# Always run basic Golang tests
+name: Tests
+
+on:
+  push:
+    paths-ignore:
+      - README.md
+      - .github/dependabot.yml
+      - .github/workflows/**
+      - docs/
+      - examples/
+      - deploy/
+      - hack/
+      - charts/
+  # Disable pull_request to prevent malicious PRs
+  # pull_request:
+  #   paths-ignore:
+  #     - README.md
+  #     - DEV.md
+  #     - RELEASE.md
+  #     - .github/dependabot.yml
+  #     - .github/workflows/**
+  #     - .devcontainer/**
+
+jobs:
+  test-csi:
+    name: Run on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Running Tests
+        run: |
+          go mod tidy
+          make test
+
+  test-operator:
+    name: Run Operator Tests on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: operator/go.mod
+
+      - name: Running Tests
+        run: |
+          cd operator
+          go mod tidy
+          make test
