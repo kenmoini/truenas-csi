@@ -20,8 +20,8 @@ const (
 	// This is the default path where the Root CA Bundle is mounted in the controller
 	UBIRootCertMountPath        = "/etc/pki/tls/certs/"
 	DistrolessRootCertMountPath = "/etc/ssl/certs/"
-	UBIRootCertFilename				= "ca-bundle.crt"
-	DistrolessRootCertFilename		= "ca-certificates.crt"
+	UBIRootCertFilename         = "ca-bundle.crt"
+	DistrolessRootCertFilename  = "ca-certificates.crt"
 )
 
 // LeaderElectionID is the name of the Lease resource used for leader election
@@ -84,6 +84,7 @@ const (
 
 // Host paths
 const (
+	HostPathSocketDir       = "/csi"
 	HostPathRegistrationDir = "/var/lib/kubelet/plugins_registry/"
 	HostPathPluginDir       = "/var/lib/kubelet/plugins/csi.truenas.io/"
 	HostPathKubeletDir      = "/var/lib/kubelet"

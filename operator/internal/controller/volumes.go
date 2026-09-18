@@ -14,9 +14,9 @@ func buildControllerVolumes(csi *csiv1alpha1.TrueNASCSI) []corev1.Volume {
 	}
 	// If a RootCertificateBundle is specified, add a volume for it
 	if csi.Spec.RootCertificateBundle.Name != "" {
+		var path string
 		// Default key is "ca-bundle.crt" if not specified
 		key := "ca-bundle.crt"
-		path := "ca-bundle.crt"
 
 		// Detect if running on OpenShift to determine the correct mount path and filename
 		// The assumption is that on OpenShift the UBI-based image is being run
@@ -81,6 +81,8 @@ func emptyDirVolume(name string) corev1.Volume {
 }
 
 // hostPathVolume creates a HostPath volume
+//
+//nolint:staticcheck
 func hostPathVolume(name, path string, pathType *corev1.HostPathType) corev1.Volume {
 	vol := corev1.Volume{
 		Name: name,
@@ -101,7 +103,7 @@ func buildNodeVolumeMounts() []corev1.VolumeMount {
 	mountPropagationBidirectional := corev1.MountPropagationBidirectional
 
 	return []corev1.VolumeMount{
-		{Name: VolumePluginDir, MountPath: "/csi"},
+		{Name: VolumePluginDir, MountPath: HostPathSocketDir},
 		{Name: VolumeKubeletDir, MountPath: "/var/lib/kubelet", MountPropagation: &mountPropagationBidirectional},
 		{Name: VolumeDeviceDir, MountPath: "/dev"},
 		{Name: VolumeModulesDir, MountPath: "/lib/modules", ReadOnly: true},
@@ -116,7 +118,7 @@ func buildNodeVolumeMounts() []corev1.VolumeMount {
 // buildNodeDriverRegistrarVolumeMounts returns the volume mounts for the node driver registrar
 func buildNodeDriverRegistrarVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
-		{Name: VolumePluginDir, MountPath: "/csi"},
+		{Name: VolumePluginDir, MountPath: HostPathSocketDir},
 		{Name: VolumeRegistrationDir, MountPath: "/registration"},
 	}
 }

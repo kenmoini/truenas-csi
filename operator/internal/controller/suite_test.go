@@ -38,19 +38,26 @@ func TestControllers(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	var err error
+
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	ctx, cancel = context.WithCancel(context.TODO())
 
 	// Set up test sidecar images (required for deployment creation)
-	os.Setenv(EnvProvisionerImage, "registry.k8s.io/sig-storage/csi-provisioner:v3.5.0")
-	os.Setenv(EnvAttacherImage, "registry.k8s.io/sig-storage/csi-attacher:v4.3.0")
-	os.Setenv(EnvSnapshotterImage, "registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2")
-	os.Setenv(EnvResizerImage, "registry.k8s.io/sig-storage/csi-resizer:v1.8.0")
-	os.Setenv(EnvNodeDriverRegistrar, "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0")
-	os.Setenv(EnvLivenessProbeImage, "registry.k8s.io/sig-storage/livenessprobe:v2.10.0")
+	err = os.Setenv(EnvProvisionerImage, "registry.k8s.io/sig-storage/csi-provisioner:v3.5.0")
+	Expect(err).NotTo(HaveOccurred())
+	err = os.Setenv(EnvAttacherImage, "registry.k8s.io/sig-storage/csi-attacher:v4.3.0")
+	Expect(err).NotTo(HaveOccurred())
+	err = os.Setenv(EnvSnapshotterImage, "registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2")
+	Expect(err).NotTo(HaveOccurred())
+	err = os.Setenv(EnvResizerImage, "registry.k8s.io/sig-storage/csi-resizer:v1.8.0")
+	Expect(err).NotTo(HaveOccurred())
+	err = os.Setenv(EnvNodeDriverRegistrar, "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0")
+	Expect(err).NotTo(HaveOccurred())
+	err = os.Setenv(EnvLivenessProbeImage, "registry.k8s.io/sig-storage/livenessprobe:v2.10.0")
+	Expect(err).NotTo(HaveOccurred())
 
-	var err error
 	err = csiv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 

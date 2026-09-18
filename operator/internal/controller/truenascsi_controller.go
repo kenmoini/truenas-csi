@@ -30,7 +30,7 @@ import (
 // TrueNASCSIReconciler reconciles a TrueNASCSI object
 type TrueNASCSIReconciler struct {
 	client.Client
-	Scheme      *runtime.Scheme
+	Scheme *runtime.Scheme
 	// IsOpenShift indicates whether the operator is running on an OpenShift cluster.
 	// It is set during reconciliation and used to conditionally manage OpenShift-specific resources like SCCs.
 	IsOpenShift bool

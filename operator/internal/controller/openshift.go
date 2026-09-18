@@ -2,19 +2,19 @@ package controller
 
 import (
 	"context"
-	"os"
 	"fmt"
+	"os"
 	"path/filepath"
 
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	csiv1alpha1 "github.com/truenas/truenas-csi/operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	csiv1alpha1 "github.com/truenas/truenas-csi/operator/api/v1alpha1"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // This function provides a reconciler method to check if the Operator is running on OpenShift.

@@ -13,6 +13,8 @@ import (
 )
 
 // buildTrueNASEnvVars creates the environment variables for TrueNAS CSI containers
+//
+//nolint:prealloc
 func buildTrueNASEnvVars(csi *csiv1alpha1.TrueNASCSI) []corev1.EnvVar {
 	baseEnvVars := []corev1.EnvVar{
 		{Name: "CSI_ENDPOINT", Value: CSISocketPath},
@@ -46,6 +48,8 @@ func fieldRefEnvVar(name, fieldPath string) corev1.EnvVar {
 }
 
 // configMapEnvVar creates an environment variable from a ConfigMap key
+//
+//nolint:unparam
 func configMapEnvVar(name, configMapName, key string, optional bool) corev1.EnvVar {
 	return corev1.EnvVar{
 		Name: name,
@@ -106,7 +110,7 @@ func mustParseQuantity(s string) resource.Quantity {
 
 // socketDirVolumeMount returns the standard socket directory volume mount
 func socketDirVolumeMount() corev1.VolumeMount {
-	return corev1.VolumeMount{Name: VolumeSocketDir, MountPath: "/csi"}
+	return corev1.VolumeMount{Name: VolumeSocketDir, MountPath: HostPathSocketDir}
 }
 
 // getDriverImage returns the driver image, using the default if not specified

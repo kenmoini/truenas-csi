@@ -8,7 +8,7 @@ linters:
     - dupl
     - errcheck
     - ginkgolinter
-    - goconst
+    # - goconst # Very annoying with RBAC
     - gocyclo
     - govet
     - ineffassign
