@@ -28,7 +28,7 @@ on:
 
 jobs:
   lint:
-    name: Run on Ubuntu
+    name: Run CSI Golang Linting
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
@@ -43,3 +43,21 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.13
+
+  lint-operator:
+    name: Run Operator Golang Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: operator/go.mod
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13
+          working-directory: operator

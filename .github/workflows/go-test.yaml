@@ -27,7 +27,7 @@ on:
 
 jobs:
   test-csi:
-    name: Run on Ubuntu
+    name: Run CSI Golang Test Suite
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
@@ -44,7 +44,7 @@ jobs:
           make test
 
   test-operator:
-    name: Run Operator Tests on Ubuntu
+    name: Run Operator Golang Test Suite
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
