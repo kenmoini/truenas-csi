@@ -2,7 +2,7 @@ name: Bundle - Build Operator Bundle Container
 
 env:
   BUILD_CONTEXT_PATH: operator
-  CONTAINERFILE_PATH: bundle.Dockerfile
+  CONTAINERFILE_PATH: operator/bundle.Dockerfile
   WORKFLOW_TRIGGER: 1
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}

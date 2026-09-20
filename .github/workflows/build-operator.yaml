@@ -2,7 +2,7 @@ name: Operator - Build Operator Container
 
 env:
   BUILD_CONTEXT_PATH: operator
-  CONTAINERFILE_PATH: Dockerfile.ubi
+  CONTAINERFILE_PATH: operator/Dockerfile.ubi
   WORKFLOW_TRIGGER: 1
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
