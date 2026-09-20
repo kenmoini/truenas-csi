@@ -123,20 +123,20 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator
 
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v7
         with:
           platforms: ${{ matrix.platform }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           context: ${{ env.BUILD_CONTEXT_PATH }}
           file: ${{ env.CONTAINERFILE_PATH }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
           #push: true
-          #provenance: false
           #platforms: linux/amd64, linux/arm64
           #provenance: mode=max
           #sbom: true
@@ -189,7 +189,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator
           tags: |
             type=schedule
             type=ref,event=branch
@@ -202,20 +202,20 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator:${{ steps.meta.outputs.version }}
 
       - name: Generate SBOM for container image
         uses: anchore/sbom-action@v0.24.0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator:${{ steps.meta.outputs.version }}
           dependency-snapshot: true
       #- name: Container Dependency Submission Action
       #  uses: GeekMasher/container-dependency-submission-action@main
       #  with:
       #    # `container` is the name of the container already built on the system
-      #    container: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+      #    container: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator:${{ steps.meta.outputs.version }}
       #    token: ${{ secrets.GITHUB_TOKEN }}
