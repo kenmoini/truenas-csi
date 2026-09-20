@@ -39,6 +39,11 @@ jobs:
   build:
     name: Build Container
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -113,6 +118,11 @@ jobs:
 
   merge:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     needs:
       - build
     steps:
