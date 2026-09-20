@@ -28,7 +28,7 @@ spec:
   #   key: "ca-bundle.crt"
 
   # Optional: Custom driver image
-  # driverImage: "quay.io/truenas_solutions/truenas-csi:latest"
+  # driverImage: "ghcr.io/kenmoini/truenas-csi:latest"
 
   # Optional: Number of controller replicas (default: 1)
   # controllerReplicas: 1

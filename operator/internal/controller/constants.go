@@ -137,7 +137,7 @@ const (
 
 // Default values
 const (
-	DefaultDriverImage        = "quay.io/truenas_solutions/truenas-csi:latest"
+	DefaultDriverImage        = "ghcr.io/kenmoini/truenas-csi:latest"
 	DefaultControllerReplicas = int32(1)
 	DefaultLogLevel           = int32(4)
 )

@@ -39,11 +39,11 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # quay.io/truenas_solutions/truenas-csi-operator-bundle:$VERSION and quay.io/truenas_solutions/truenas-csi-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= quay.io/truenas_solutions/truenas-csi-operator
+IMAGE_TAG_BASE ?= ghcr.io/kenmoini/truenas-csi-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+BUNDLE_IMG ?= ghcr.io/kenmoini/truenas-csi-bundle:v$(VERSION)
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
 BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
@@ -63,7 +63,7 @@ OPERATOR_SDK_VERSION ?= v1.42.0
 IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
 
 # DRIVER_IMG defines the CSI driver image reference used in the operator's env vars.
-DRIVER_IMG ?= quay.io/truenas_solutions/truenas-csi:v$(VERSION)
+DRIVER_IMG ?= ghcr.io/kenmoini/truenas-csi:v$(VERSION)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -339,7 +339,7 @@ endif
 bundle: manifests kustomize operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	sed -i 's|value: "quay.io/truenas_solutions/truenas-csi:.*"|value: "$(DRIVER_IMG)"|' config/manager/manager.yaml
+	sed -i 's|value: "ghcr.io/kenmoini/truenas-csi:.*"|value: "$(DRIVER_IMG)"|' config/manager/manager.yaml
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
 	hack/resolve-image-digests.sh bundle/manifests/operator.clusterserviceversion.yaml
 	$(OPERATOR_SDK) bundle validate ./bundle

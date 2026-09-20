@@ -74,7 +74,7 @@ spec:
                   provisioning
                 type: string
               driverImage:
-                default: quay.io/truenas_solutions/truenas-csi:latest
+                default: ghcr.io/kenmoini/truenas-csi:latest
                 description: DriverImage is the container image for the TrueNAS CSI
                   driver
                 type: string

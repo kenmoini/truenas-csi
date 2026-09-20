@@ -64,6 +64,7 @@ spec:
           - --leader-elect
           - --health-probe-bind-address=:8081
         image: controller:latest
+        imagePullPolicy: Always
         name: manager
         env:
         - name: PROVISIONER_IMAGE
@@ -79,7 +80,7 @@ spec:
         - name: LIVENESS_PROBE_IMAGE
           value: "registry.k8s.io/sig-storage/livenessprobe:v2.18.0"
         - name: DRIVER_IMAGE
-          value: "quay.io/truenas_solutions/truenas-csi:v1.3.0"
+          value: "ghcr.io/kenmoini/truenas-csi:v1.3.0"
         ports: []
         securityContext:
           allowPrivilegeEscalation: false

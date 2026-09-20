@@ -69,7 +69,7 @@ type TrueNASCSISpec struct {
 
 	// DriverImage is the container image for the TrueNAS CSI driver
 	// +optional
-	// +kubebuilder:default="quay.io/truenas_solutions/truenas-csi:latest"
+	// +kubebuilder:default="ghcr.io/kenmoini/truenas-csi:latest"
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Driver Image",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	DriverImage string `json:"driverImage,omitempty"`
 
