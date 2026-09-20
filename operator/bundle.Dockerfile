@@ -1,4 +1,5 @@
-FROM scratch
+#FROM scratch
+FROM registry.access.redhat.com/hi/static:latest
 
 # Core bundle labels.
 LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1
