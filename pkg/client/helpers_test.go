@@ -37,7 +37,7 @@ func connectTestClient(t *testing.T, mock *MockTrueNASServer) *Client {
 		t.Fatalf("failed to connect: %v", err)
 	}
 	t.Cleanup(func() {
-		client.Close()
+		client.Close() //nolint:errcheck
 	})
 	return client
 }

@@ -548,7 +548,10 @@ func (s *ControllerServer) createNFSVolume(ctx context.Context, volumeID, datase
 	share, err := s.driver.Client().CreateNFSShare(ctx, shareOpts)
 	if err != nil {
 		s.driver.Log().Error(err, "Failed to create NFS share", "mountpoint", mountpoint)
-		s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete dataset after NFS share creation failure", "dataset", datasetPath)
+		}
 		return nil, fmt.Errorf("failed to create NFS share: %w", err)
 	}
 	s.driver.Log().V(LogLevelInfo).Info("Successfully created NFS share", "shareId", share.ID, "path", mountpoint)
@@ -761,7 +764,10 @@ func (s *ControllerServer) createNVMeOFVolume(ctx context.Context, volumeID, dat
 		return nil, fmt.Errorf("failed to create ZVOL: %w", err)
 	}
 	cleanupDataset := func() {
-		s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		err = s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		if err != nil {
+			s.driver.Log().Error(err, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+		}
 	}
 
 	hostNQN := parameters[paramNVMeOFHostNQN]
@@ -776,15 +782,25 @@ func (s *ControllerServer) createNVMeOFVolume(ctx context.Context, volumeID, dat
 	zvolPath := "zvol/" + datasetPath
 	ns, err := s.driver.Client().CreateNVMeNamespace(ctx, subsys.ID, client.NVMeDeviceTypeZVOL, zvolPath)
 	if err != nil {
-		s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		errIn := s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+		}
 		cleanupDataset()
 		return nil, fmt.Errorf("failed to create NVMe-oF namespace: %w", err)
 	}
 
 	portSubsys, err := s.driver.Client().CreateNVMePortSubsys(ctx, portID, subsys.ID)
 	if err != nil {
-		s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
-		s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		errIn := s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete NVMe-oF namespace during cleanup", "namespace", ns.ID)
+		}
+
+		errIn = s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+		}
 		cleanupDataset()
 		return nil, fmt.Errorf("failed to link NVMe-oF port to subsystem: %w", err)
 	}
@@ -793,17 +809,35 @@ func (s *ControllerServer) createNVMeOFVolume(ctx context.Context, volumeID, dat
 	if hostNQN != "" {
 		hostID, err = s.ensureNVMeHost(ctx, parameters)
 		if err != nil {
-			s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
-			s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
-			s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			errIn := s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF port-subsystem during cleanup", "portSubsys", portSubsys.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF namespace during cleanup", "namespace", ns.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+			}
 			cleanupDataset()
 			return nil, err
 		}
 		hs, err := s.driver.Client().CreateNVMeHostSubsys(ctx, hostID, subsys.ID)
 		if err != nil {
-			s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
-			s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
-			s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			errIn := s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF port-subsystem during cleanup", "portSubsys", portSubsys.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF namespace during cleanup", "namespace", ns.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+			}
 			cleanupDataset()
 			return nil, fmt.Errorf("failed to authorize host on NVMe-oF subsystem: %w", err)
 		}
@@ -1109,14 +1143,20 @@ func (s *ControllerServer) createISCSIVolume(ctx context.Context, volumeID, data
 	if chapUser, ok := parameters[paramISCSIChapUser]; ok && chapUser != "" {
 		chapSecret := parameters[paramISCSIChapSecret]
 		if chapSecret == "" {
-			s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			err = s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			if err != nil {
+				s.driver.Log().Error(err, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+			}
 			return nil, fmt.Errorf("iscsi.chapSecret is required when iscsi.chapUser is specified")
 		}
 
 		// Get next available auth tag
 		nextTag, err := s.driver.Client().GetNextISCSIAuthTag(ctx)
 		if err != nil {
-			s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+			}
 			return nil, fmt.Errorf("failed to get next auth tag: %w", err)
 		}
 
@@ -1135,7 +1175,10 @@ func (s *ControllerServer) createISCSIVolume(ctx context.Context, volumeID, data
 
 		auth, err := s.driver.Client().CreateISCSIAuth(ctx, authOpts)
 		if err != nil {
-			s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+			}
 			return nil, fmt.Errorf("failed to create CHAP auth: %w", err)
 		}
 		authID = auth.ID
@@ -1161,9 +1204,15 @@ func (s *ControllerServer) createISCSIVolume(ctx context.Context, volumeID, data
 		if err != nil {
 			// Cleanup auth if created
 			if authID > 0 {
-				s.driver.Client().DeleteISCSIAuth(ctx, authID)
+				errIn := s.driver.Client().DeleteISCSIAuth(ctx, authID)
+				if errIn != nil {
+					s.driver.Log().Error(errIn, "Failed to delete iSCSI auth during cleanup", "auth", authID)
+				}
 			}
-			s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+			}
 			return nil, fmt.Errorf("failed to create initiator group: %w", err)
 		}
 		initiatorID = init.ID
@@ -1177,12 +1226,21 @@ func (s *ControllerServer) createISCSIVolume(ctx context.Context, volumeID, data
 	if err != nil {
 		// Cleanup auth and initiator if created
 		if initiatorID > 0 {
-			s.driver.Client().DeleteISCSIInitiator(ctx, initiatorID)
+			errIn := s.driver.Client().DeleteISCSIInitiator(ctx, initiatorID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete iSCSI initiator during cleanup", "initiator", initiatorID)
+			}
 		}
 		if authID > 0 {
-			s.driver.Client().DeleteISCSIAuth(ctx, authID)
+			errIn := s.driver.Client().DeleteISCSIAuth(ctx, authID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete iSCSI auth during cleanup", "auth", authID)
+			}
 		}
-		s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+		}
 		return nil, fmt.Errorf("failed to create iSCSI target: %w", err)
 	}
 
@@ -1197,29 +1255,56 @@ func (s *ControllerServer) createISCSIVolume(ctx context.Context, volumeID, data
 	extent, err := s.driver.Client().CreateISCSIExtent(ctx, makeISCSIExtentName(volumeID), zvolPath, blocksize)
 	if err != nil {
 		// Full cleanup: target, initiator, auth, dataset
-		s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		errIn := s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete iSCSI target during cleanup", "target", target.ID)
+		}
 		if initiatorID > 0 {
-			s.driver.Client().DeleteISCSIInitiator(ctx, initiatorID)
+			errIn = s.driver.Client().DeleteISCSIInitiator(ctx, initiatorID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete iSCSI initiator during cleanup", "initiator", initiatorID)
+			}
 		}
 		if authID > 0 {
-			s.driver.Client().DeleteISCSIAuth(ctx, authID)
+			errIn = s.driver.Client().DeleteISCSIAuth(ctx, authID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete iSCSI auth during cleanup", "auth", authID)
+			}
 		}
-		s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		errIn = s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+		}
 		return nil, fmt.Errorf("failed to create iSCSI extent: %w", err)
 	}
 
 	_, err = s.driver.Client().CreateISCSITargetExtent(ctx, target.ID, extent.ID, 0)
 	if err != nil {
 		// Full cleanup: extent, target, initiator, auth, dataset
-		s.driver.Client().DeleteISCSIExtent(ctx, extent.ID, &client.ISCSIExtentDeleteOptions{Force: true})
-		s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		errIn := s.driver.Client().DeleteISCSIExtent(ctx, extent.ID, &client.ISCSIExtentDeleteOptions{Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete iSCSI extent during cleanup", "extent", extent.ID)
+		}
+		errIn = s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete iSCSI target during cleanup", "target", target.ID)
+		}
 		if initiatorID > 0 {
-			s.driver.Client().DeleteISCSIInitiator(ctx, initiatorID)
+			errIn := s.driver.Client().DeleteISCSIInitiator(ctx, initiatorID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete iSCSI initiator during cleanup", "initiator", initiatorID)
+			}
 		}
 		if authID > 0 {
-			s.driver.Client().DeleteISCSIAuth(ctx, authID)
+			errIn := s.driver.Client().DeleteISCSIAuth(ctx, authID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete iSCSI auth during cleanup", "auth", authID)
+			}
 		}
-		s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		errIn = s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+		}
 		return nil, fmt.Errorf("failed to associate target and extent: %w", err)
 	}
 
@@ -1317,7 +1402,10 @@ func (s *ControllerServer) createVolumeFromSource(ctx context.Context, req *csi.
 		}
 
 		if err != nil {
-			s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+			}
 			return nil, status.Errorf(codes.Internal, "failed to create share for clone: %v", err)
 		}
 
@@ -1357,11 +1445,17 @@ func (s *ControllerServer) createVolumeFromSource(ctx context.Context, req *csi.
 
 		_, err = s.driver.Client().CloneSnapshot(ctx, snapshot.ID, datasetPath)
 		if err != nil {
-			s.driver.Client().DeleteSnapshot(ctx, snapshot.ID)
+			errIn := s.driver.Client().DeleteSnapshot(ctx, snapshot.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete snapshot during cleanup", "snapshot", snapshot.ID)
+			}
 			return nil, status.Errorf(codes.Internal, "failed to clone volume: %v", err)
 		}
 
-		s.driver.Client().DeleteSnapshot(ctx, snapshot.ID)
+		err = s.driver.Client().DeleteSnapshot(ctx, snapshot.ID)
+		if err != nil {
+			s.driver.Log().Error(err, "Failed to delete snapshot during cleanup", "snapshot", snapshot.ID)
+		}
 
 		requiredBytes := req.CapacityRange.RequiredBytes
 		if requiredBytes > 0 && requiredBytes < minVolumeSize {
@@ -1403,7 +1497,10 @@ func (s *ControllerServer) createVolumeFromSource(ctx context.Context, req *csi.
 		}
 
 		if err != nil {
-			s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			errIn := s.driver.Client().DeleteDataset(ctx, datasetPath, &client.DatasetDeleteOptions{Recursive: true, Force: true})
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete dataset during cleanup", "dataset", datasetPath)
+			}
 			return nil, status.Errorf(codes.Internal, "failed to create share for clone: %v", err)
 		}
 
@@ -1486,14 +1583,23 @@ func (s *ControllerServer) createISCSITargetForClone(ctx context.Context, volume
 	zvolPath := fmt.Sprintf("zvol/%s", datasetPath)
 	extent, err := s.driver.Client().CreateISCSIExtent(ctx, makeISCSIExtentName(volumeID), zvolPath, defaultISCSIBlocksize)
 	if err != nil {
-		s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		errIn := s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete iSCSI target during cleanup", "target", target.ID)
+		}
 		return nil, err
 	}
 
 	_, err = s.driver.Client().CreateISCSITargetExtent(ctx, target.ID, extent.ID, 0)
 	if err != nil {
-		s.driver.Client().DeleteISCSIExtent(ctx, extent.ID, &client.ISCSIExtentDeleteOptions{Force: true})
-		s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		errIn := s.driver.Client().DeleteISCSIExtent(ctx, extent.ID, &client.ISCSIExtentDeleteOptions{Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete iSCSI extent during cleanup", "extent", extent.ID)
+		}
+		errIn = s.driver.Client().DeleteISCSITarget(ctx, target.ID, &client.ISCSITargetDeleteOptions{Force: true})
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete iSCSI target during cleanup", "target", target.ID)
+		}
 		return nil, err
 	}
 
@@ -1547,14 +1653,23 @@ func (s *ControllerServer) createNVMeOFTargetForClone(ctx context.Context, volum
 	zvolPath := fmt.Sprintf("zvol/%s", datasetPath)
 	ns, err := s.driver.Client().CreateNVMeNamespace(ctx, subsys.ID, client.NVMeDeviceTypeZVOL, zvolPath)
 	if err != nil {
-		s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		errIn := s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+		}
 		return nil, err
 	}
 
 	portSubsys, err := s.driver.Client().CreateNVMePortSubsys(ctx, portID, subsys.ID)
 	if err != nil {
-		s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
-		s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		errIn := s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete NVMe-oF namespace during cleanup", "namespace", ns.ID)
+		}
+		errIn = s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+		if errIn != nil {
+			s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+		}
 		return nil, err
 	}
 
@@ -1562,16 +1677,34 @@ func (s *ControllerServer) createNVMeOFTargetForClone(ctx context.Context, volum
 	if hostNQN != "" {
 		hostID, err = s.ensureNVMeHost(ctx, parameters)
 		if err != nil {
-			s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
-			s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
-			s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			errIn := s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF port-subsystem during cleanup", "portSubsys", portSubsys.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF namespace during cleanup", "namespace", ns.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+			}
 			return nil, err
 		}
 		hs, err := s.driver.Client().CreateNVMeHostSubsys(ctx, hostID, subsys.ID)
 		if err != nil {
-			s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
-			s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
-			s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			errIn := s.driver.Client().DeleteNVMePortSubsys(ctx, portSubsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF port-subsystem during cleanup", "portSubsys", portSubsys.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeNamespace(ctx, ns.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF namespace during cleanup", "namespace", ns.ID)
+			}
+			errIn = s.driver.Client().DeleteNVMeSubsystem(ctx, subsys.ID)
+			if errIn != nil {
+				s.driver.Log().Error(errIn, "Failed to delete NVMe-oF subsystem during cleanup", "subsystem", subsys.ID)
+			}
 			return nil, err
 		}
 		hostSubsysID = hs.ID

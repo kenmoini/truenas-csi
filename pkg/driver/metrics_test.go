@@ -182,7 +182,11 @@ func TestMetrics_ServesOnlyTheMetricsPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GET %s: %v", MetricsPath, err)
 	}
-	resp.Body.Close()
+	err = resp.Body.Close()
+	if err != nil {
+		t.Fatalf("closing response body: %v", err)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("GET %s = %d, want 200", MetricsPath, resp.StatusCode)
 	}
@@ -192,7 +196,10 @@ func TestMetrics_ServesOnlyTheMetricsPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GET %s: %v", path, err)
 		}
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			t.Fatalf("closing response body: %v", err)
+		}
 		if resp.StatusCode != http.StatusNotFound {
 			t.Errorf("GET %s = %d, want 404", path, resp.StatusCode)
 		}
@@ -207,7 +214,7 @@ func TestMetrics_StartServerReportsBindFailure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to occupy a port: %v", err)
 	}
-	defer occupied.Close()
+	defer occupied.Close() //nolint:errcheck
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -262,7 +269,7 @@ func scrapeMetrics(t *testing.T, m *Metrics) string {
 	if err != nil {
 		t.Fatalf("failed to scrape metrics: %v", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

@@ -49,7 +49,7 @@ func TestCallObserver_ReportsEveryCall(t *testing.T) {
 	if err := client.Connect(testContext(t)); err != nil {
 		t.Fatalf("failed to connect: %v", err)
 	}
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	var result string
 	if err := client.Call(testContext(t), "test.ok", nil, &result); err != nil {

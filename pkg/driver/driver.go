@@ -386,7 +386,10 @@ func NewDriver(config *DriverConfig) (*Driver, error) {
 
 	// Test connection
 	if err := truenasClient.Ping(ctx); err != nil {
-		truenasClient.Close()
+		errIn := truenasClient.Close()
+		if errIn != nil {
+			log.V(LogLevelInfo).Info("Failed to close TrueNAS client after ping failure", "error", errIn)
+		}
 		return nil, fmt.Errorf("failed to ping TrueNAS: %w", err)
 	}
 
@@ -509,7 +512,10 @@ func NewDriver(config *DriverConfig) (*Driver, error) {
 			Mounter: mounter,
 		})
 		if err != nil {
-			truenasClient.Close()
+			errIn := truenasClient.Close()
+			if errIn != nil {
+				log.V(LogLevelInfo).Info("Failed to close TrueNAS client after node server creation failure", "error", errIn)
+			}
 			return nil, fmt.Errorf("failed to create node server: %w", err)
 		}
 		d.nodeServer = nodeServer
@@ -626,7 +632,10 @@ func (d *Driver) Stop() {
 		d.server.Stop()
 	}
 
-	d.client.Close()
+	err := d.client.Close()
+	if err != nil {
+		d.log.V(LogLevelInfo).Info("Failed to close TrueNAS client during driver stop", "error", err)
+	}
 	d.log.Info("TrueNAS CSI driver stopped")
 }
 

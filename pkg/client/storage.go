@@ -72,9 +72,10 @@ const (
 )
 
 // Default iSCSI port
-const (
-	defaultISCSIPort = 3260
-)
+// Currently unused
+// const (
+// 	defaultISCSIPort = 3260
+// )
 
 // Dataset represents a ZFS dataset in TrueNAS.
 type Dataset struct {

@@ -153,7 +153,7 @@ func (m *MockTrueNASServer) handleWebSocket(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return
 	}
-	defer conn.Close(websocket.StatusNormalClosure, "")
+	defer conn.Close(websocket.StatusNormalClosure, "") //nolint:errcheck
 
 	// Handle messages
 	for {

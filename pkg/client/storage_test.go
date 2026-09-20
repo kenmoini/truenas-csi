@@ -86,8 +86,11 @@ func TestCreateDataset_SparseZVOL(t *testing.T) {
 
 	requests := mock.GetRequestsByMethod(methodDatasetCreate)
 	assertLen(t, requests, 1)
+
 	var params []any
-	json.Unmarshal(requests[0].Params, &params)
+	err = json.Unmarshal(requests[0].Params, &params)
+	assertNoError(t, err)
+
 	createOpts := params[0].(map[string]any)
 	assertTrue(t, createOpts["sparse"].(bool))
 }
@@ -114,8 +117,11 @@ func TestCreateDataset_ThickZVOL_NoSparseField(t *testing.T) {
 
 	requests := mock.GetRequestsByMethod(methodDatasetCreate)
 	assertLen(t, requests, 1)
+
 	var params []any
-	json.Unmarshal(requests[0].Params, &params)
+	err = json.Unmarshal(requests[0].Params, &params)
+	assertNoError(t, err)
+
 	createOpts := params[0].(map[string]any)
 	_, hasSparse := createOpts["sparse"]
 	assertFalse(t, hasSparse)
@@ -859,8 +865,11 @@ func TestCreateSnapshot_Recursive(t *testing.T) {
 	// Verify recursive flag was sent
 	requests := mock.GetRequestsByMethod(methodSnapshotCreate)
 	assertLen(t, requests, 1)
+
 	var params []any
-	json.Unmarshal(requests[0].Params, &params)
+	err = json.Unmarshal(requests[0].Params, &params)
+	assertNoError(t, err)
+
 	opts := params[0].(map[string]any)
 	assertTrue(t, opts["recursive"].(bool))
 }
@@ -1259,7 +1268,8 @@ func TestDatasetCreateOptions_JSONEncoding(t *testing.T) {
 	assertNoError(t, err)
 
 	var decoded map[string]any
-	json.Unmarshal(data, &decoded)
+	err = json.Unmarshal(data, &decoded)
+	assertNoError(t, err)
 
 	// Should have name and refquota
 	_, hasName := decoded["name"]
@@ -1293,7 +1303,8 @@ func TestDatasetCreateOptions_JSONEncoding_WithSparse(t *testing.T) {
 	assertNoError(t, err)
 
 	var decoded map[string]any
-	json.Unmarshal(data, &decoded)
+	err = json.Unmarshal(data, &decoded)
+	assertNoError(t, err)
 
 	sparseVal, hasSparse := decoded["sparse"]
 	assertTrue(t, hasSparse)

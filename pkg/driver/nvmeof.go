@@ -411,7 +411,10 @@ func (h *NVMeOFHandler) Unstage(ctx context.Context, req *UnstageRequest) error 
 	if err := h.cleanupNVMeSession(ctx, req.VolumeID); err != nil {
 		return err
 	}
-	os.Remove(req.StagingPath)
+	err = os.Remove(req.StagingPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove staging path %s: %w", req.StagingPath, err)
+	}
 
 	h.log.V(LogLevelDebug).Info("NVMe-oF volume unstaged", "volumeId", req.VolumeID)
 	return nil
@@ -506,14 +509,21 @@ func (h *NVMeOFHandler) publishBlockVolume(req *PublishRequest) error {
 	if err != nil {
 		return fmt.Errorf("failed to create target file: %w", err)
 	}
-	file.Close()
+
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close target file: %w", err)
+	}
 
 	mountOptions := []string{mountOptionBind}
 	if req.ReadOnly {
 		mountOptions = append(mountOptions, mountOptionReadOnly)
 	}
 	if err := h.mounter.Mount(info.DevicePath, req.TargetPath, "", mountOptions); err != nil {
-		os.Remove(req.TargetPath)
+		errIn := os.Remove(req.TargetPath)
+		if errIn != nil && !os.IsNotExist(errIn) {
+			return fmt.Errorf("failed to remove target path %s: %w", req.TargetPath, errIn)
+		}
 		return fmt.Errorf("failed to bind mount block device: %w", err)
 	}
 	return nil
@@ -536,7 +546,10 @@ func (h *NVMeOFHandler) Unpublish(ctx context.Context, req *UnpublishRequest) er
 	if err := h.mounter.Unmount(req.TargetPath); err != nil {
 		return fmt.Errorf("failed to unmount: %w", err)
 	}
-	os.Remove(req.TargetPath)
+	err = os.Remove(req.TargetPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove target path %s: %w", req.TargetPath, err)
+	}
 	return nil
 }
 

@@ -49,6 +49,7 @@ func pollJob(ctx context.Context, c *client.Client, jobID int) (*jobStatus, erro
 	}
 }
 
+// nolint:unparam
 func bulkDelete(ctx context.Context, c *client.Client, method string, paramSets [][]any) (int, int) {
 	if len(paramSets) == 0 {
 		fmt.Println("  Nothing to delete")
@@ -102,10 +103,10 @@ func main() {
 		APIKey:             apiKey,
 		InsecureSkipVerify: true,
 	})
-	defer c.Close()
+	defer c.Close() //nolint:errcheck
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-	defer cancel()
+	defer cancel() //nolint:errcheck
 
 	if err := c.Connect(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to connect: %v\n", err)

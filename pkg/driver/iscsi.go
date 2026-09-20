@@ -288,7 +288,10 @@ func (h *ISCSIHandler) Unstage(ctx context.Context, req *UnstageRequest) error {
 	}
 
 	// Remove staging directory
-	os.Remove(req.StagingPath)
+	err = os.Remove(req.StagingPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove staging path %s: %w", req.StagingPath, err)
+	}
 
 	h.log.V(LogLevelDebug).Info("iSCSI volume unstaged", "volumeId", req.VolumeID)
 	return nil
@@ -467,7 +470,11 @@ func (h *ISCSIHandler) publishBlockVolume(ctx context.Context, req *PublishReque
 	if err != nil {
 		return fmt.Errorf("failed to create target file: %w", err)
 	}
-	file.Close()
+
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close target file: %w", err)
+	}
 
 	// Bind mount block device to target file
 	mountOptions := []string{mountOptionBind}
@@ -476,7 +483,10 @@ func (h *ISCSIHandler) publishBlockVolume(ctx context.Context, req *PublishReque
 	}
 
 	if err := h.mounter.Mount(devicePath, req.TargetPath, "", mountOptions); err != nil {
-		os.Remove(req.TargetPath)
+		errIn := os.Remove(req.TargetPath)
+		if errIn != nil && !os.IsNotExist(errIn) {
+			return fmt.Errorf("failed to remove target path %s: %w", req.TargetPath, errIn)
+		}
 		return fmt.Errorf("failed to bind mount block device: %w", err)
 	}
 
@@ -504,7 +514,10 @@ func (h *ISCSIHandler) Unpublish(ctx context.Context, req *UnpublishRequest) err
 		return fmt.Errorf("failed to unmount: %w", err)
 	}
 
-	os.Remove(req.TargetPath)
+	err = os.Remove(req.TargetPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove target path %s: %w", req.TargetPath, err)
+	}
 
 	h.log.V(LogLevelDebug).Info("iSCSI volume unpublished", "volumeId", req.VolumeID, "targetPath", req.TargetPath)
 	return nil

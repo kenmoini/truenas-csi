@@ -366,27 +366,27 @@ func (c *Client) dial(ctx context.Context) error {
 	}
 
 	if err = wsjson.Write(authCtx, conn, authReq); err != nil {
-		conn.Close(websocket.StatusNormalClosure, "")
+		conn.Close(websocket.StatusNormalClosure, "") //nolint:errcheck
 		c.log.Error(err, "TrueNAS auth write error")
 		return &ConnectionError{Op: "write", Err: err}
 	}
 
 	var authResp response
 	if err = wsjson.Read(authCtx, conn, &authResp); err != nil {
-		conn.Close(websocket.StatusNormalClosure, "")
+		conn.Close(websocket.StatusNormalClosure, "") //nolint:errcheck
 		c.log.Error(err, "TrueNAS auth read error")
 		return &ConnectionError{Op: "read", Err: err}
 	}
 
 	if authResp.Error != nil {
-		conn.Close(websocket.StatusNormalClosure, "")
+		conn.Close(websocket.StatusNormalClosure, "") //nolint:errcheck
 		c.log.Error(nil, "TrueNAS authentication error", "error", authResp.Error)
 		return authResp.Error
 	}
 
 	var ok bool
 	if err = json.Unmarshal(authResp.Result, &ok); err != nil || !ok {
-		conn.Close(websocket.StatusNormalClosure, "")
+		conn.Close(websocket.StatusNormalClosure, "") //nolint:errcheck
 		c.log.Error(nil, "TrueNAS authentication rejected")
 		return ErrAuthFailed
 	}
@@ -505,7 +505,7 @@ func (c *Client) handleDisconnect(conn *websocket.Conn) {
 	c.conn = nil
 	c.connMu.Unlock()
 
-	conn.Close(websocket.StatusNormalClosure, "")
+	conn.Close(websocket.StatusNormalClosure, "") //nolint:errcheck
 
 	// Fail pending requests
 	c.pending.Range(func(key, value any) bool {

@@ -17,7 +17,7 @@ func TestConnect_Success(t *testing.T) {
 	defer mock.Close()
 
 	client := newTestClient(mock)
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	err := client.Connect(testContext(t))
 	assertNoError(t, err)
@@ -29,7 +29,7 @@ func TestConnect_InvalidURL(t *testing.T) {
 		URL:    "ws://invalid-host-that-does-not-exist:9999",
 		APIKey: "test-key",
 	})
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -46,7 +46,7 @@ func TestConnect_AuthenticationFailed(t *testing.T) {
 	mock.SetAuthFailure(true)
 
 	client := newTestClient(mock)
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	err := client.Connect(testContext(t))
 	assertError(t, err)
@@ -64,7 +64,7 @@ func TestConnect_WrongAPIKey(t *testing.T) {
 		URL:    mock.URL,
 		APIKey: "wrong-key",
 	})
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	err := client.Connect(testContext(t))
 	assertError(t, err)
@@ -91,7 +91,7 @@ func TestConnect_ContextCanceled(t *testing.T) {
 	defer mock.Close()
 
 	client := newTestClient(mock)
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
@@ -169,7 +169,7 @@ func TestPing_NotConnected(t *testing.T) {
 	defer mock.Close()
 
 	client := newTestClient(mock)
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	err := client.Ping(testContext(t))
 	assertTrue(t, errors.Is(err, ErrNotConnected))
@@ -214,7 +214,8 @@ func TestCall_WithParams(t *testing.T) {
 	assertLen(t, requests, 1)
 
 	var sentParams []any
-	json.Unmarshal(requests[0].Params, &sentParams)
+	err = json.Unmarshal(requests[0].Params, &sentParams)
+	assertNoError(t, err)
 	assertEqual(t, len(sentParams), 2)
 }
 
@@ -264,7 +265,7 @@ func TestCall_NotConnected(t *testing.T) {
 	defer mock.Close()
 
 	client := newTestClient(mock)
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	var result any
 	err := client.Call(testContext(t), "test.method", nil, &result)
@@ -441,7 +442,7 @@ func TestNew_DefaultConfig(t *testing.T) {
 		URL:    "ws://localhost:8080",
 		APIKey: "test-key",
 	})
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	// Verify defaults are applied
 	assertEqual(t, client.config.CallTimeout, defaultCallTimeout)
@@ -461,7 +462,7 @@ func TestNew_CustomConfig(t *testing.T) {
 		ReconnectMax:    2 * time.Minute,
 		ReconnectFactor: 1.5,
 	})
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	assertEqual(t, client.config.CallTimeout, 1*time.Minute)
 	assertEqual(t, client.config.PingInterval, 5*time.Minute)
@@ -476,7 +477,7 @@ func TestNew_InsecureSkipVerify(t *testing.T) {
 		APIKey:             "test-key",
 		InsecureSkipVerify: true,
 	})
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	assertNotNil(t, client.config.TLSConfig)
 	assertTrue(t, client.config.TLSConfig.InsecureSkipVerify)

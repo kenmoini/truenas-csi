@@ -52,7 +52,7 @@ func TestSanity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 
 	endpoint := filepath.Join(tmpDir, "csi.sock")
 	targetPath := filepath.Join(tmpDir, "target")
@@ -130,7 +130,7 @@ func TestSanityISCSI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 
 	endpoint := filepath.Join(tmpDir, "csi.sock")
 	targetPath := filepath.Join(tmpDir, "target")
@@ -188,7 +188,7 @@ func TestSanityNVMeOF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 
 	endpoint := filepath.Join(tmpDir, "csi.sock")
 	targetPath := filepath.Join(tmpDir, "target")
@@ -251,7 +251,7 @@ func TestSanityNVMeOFDHCHAP(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 
 	endpoint := filepath.Join(tmpDir, "csi.sock")
 	targetPath := filepath.Join(tmpDir, "target")
@@ -314,7 +314,7 @@ func TestNVMeOFBlockVolume(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 
 	endpoint := filepath.Join(tmpDir, "csi.sock")
 	stagingPath := filepath.Join(tmpDir, "staging")
@@ -338,7 +338,7 @@ func TestNVMeOFBlockVolume(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to dial driver: %v", err)
 	}
-	defer conn.Close()
+	defer conn.Close() //nolint:errcheck
 	cc := csi.NewControllerClient(conn)
 	nc := csi.NewNodeClient(conn)
 
@@ -414,11 +414,15 @@ func TestNVMeOFBlockVolume(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open block device: %v", err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 	if _, err := f.WriteAt(want, 0); err != nil {
 		t.Fatalf("write to block device: %v", err)
 	}
-	_ = f.Sync()
+	err = f.Sync()
+	if err != nil {
+		t.Fatalf("sync block device: %v", err)
+	}
+
 	got := make([]byte, pageSize)
 	if _, err := f.ReadAt(got, 0); err != nil {
 		t.Fatalf("read from block device: %v", err)

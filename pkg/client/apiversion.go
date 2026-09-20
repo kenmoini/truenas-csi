@@ -72,7 +72,8 @@ func fetchSupportedAPIVersions(ctx context.Context, rawURL string, tlsConfig *tl
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	// ignored because body.Close() error is not critical and nothing would be done with it anyway
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GET %s returned HTTP %d", versionsURL, resp.StatusCode)

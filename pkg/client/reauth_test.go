@@ -83,7 +83,7 @@ func newReauthTestClient(t *testing.T, mock *MockTrueNASServer) *Client {
 	if err := client.Connect(testContext(t)); err != nil {
 		t.Fatalf("failed to connect: %v", err)
 	}
-	t.Cleanup(func() { client.Close() })
+	t.Cleanup(func() { client.Close() }) //nolint:errcheck
 	return client
 }
 
