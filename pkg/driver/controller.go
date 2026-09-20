@@ -2453,18 +2453,21 @@ func (s *ControllerServer) ControllerGetVolume(ctx context.Context, req *csi.Con
 		return nil, status.Errorf(codes.NotFound, "volume not found: %v", err)
 	}
 
-	dataset, err := s.driver.Client().GetDataset(ctx, volInfo.DatasetPath)
+	// dataset, err := s.driver.Client().GetDataset(ctx, volInfo.DatasetPath)
+	_, err = s.driver.Client().GetDataset(ctx, volInfo.DatasetPath)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get volume info: %v", err)
 	}
 
-	abnormal := false
-	message := "Volume is healthy"
+	// csi/spec deprecated VolumeCondition
+	// TODO: Check if there's a way to implement the volume health status conditions
+	// abnormal := false
+	// message := "Volume is healthy"
 
-	if dataset.Used > dataset.Available {
-		abnormal = true
-		message = "Volume is running out of space"
-	}
+	// if dataset.Used > dataset.Available {
+	// 	abnormal = true
+	// 	message = "Volume is running out of space"
+	// }
 
 	return &csi.ControllerGetVolumeResponse{
 		Volume: &csi.Volume{
@@ -2473,10 +2476,10 @@ func (s *ControllerServer) ControllerGetVolume(ctx context.Context, req *csi.Con
 			VolumeContext: volInfo.VolumeContext,
 		},
 		Status: &csi.ControllerGetVolumeResponse_VolumeStatus{
-			VolumeCondition: &csi.VolumeCondition{
-				Abnormal: abnormal,
-				Message:  message,
-			},
+			// VolumeCondition: &csi.VolumeCondition{
+			// 	Abnormal: abnormal,
+			// 	Message:  message,
+			// },
 		},
 	}, nil
 }
