@@ -52,8 +52,9 @@ jobs:
         # Cost of multi-arch builds is low with a bundle build - just do it anyways
           - linux/amd64
           - linux/arm64
-          - linux/ppc64le
-          - linux/s390x
+          # No RH Hardened Image for ppc and big iron
+          # - linux/ppc64le
+          # - linux/s390x
     steps:
       - name: Prepare
         run: |
