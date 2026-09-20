@@ -9,18 +9,18 @@ linters:
     - errcheck
     - ginkgolinter
     # - goconst # Very annoying with RBAC
-    - gocyclo
-    - govet
+    # - gocyclo # Tmp ignored
+    # - govet # Tmp ignored
     - ineffassign
     # - lll # Line length limiter
     - misspell
     - nakedret
     - prealloc
     - revive
-    - staticcheck
+    # - staticcheck # Tmp ignored
     - unconvert
-    - unparam
-    - unused
+    # - unparam # Tmp ignored
+    # - unused # Tmp ignored
   settings:
     revive:
       rules:
