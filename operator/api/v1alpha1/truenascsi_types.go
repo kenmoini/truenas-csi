@@ -215,6 +215,6 @@ type TrueNASCSIList struct {
 	Items           []TrueNASCSI `json:"items"`
 }
 
-func init() {
-	SchemeBuilder.Register(&TrueNASCSI{}, &TrueNASCSIList{})
-}
+// func init() {
+// 	SchemeBuilder.Register(&TrueNASCSI{}, &TrueNASCSIList{})
+// }

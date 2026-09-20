@@ -373,7 +373,8 @@ func (r *TrueNASCSIReconciler) reconcileNetworkPolicy(ctx context.Context, csi *
 			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
 			Ingress: []networkingv1.NetworkPolicyIngressRule{{
 				Ports: []networkingv1.NetworkPolicyPort{{
-					Port: ptr.To(intstr.FromInt(LivenessProbePort)),
+					Protocol: ptr.To(corev1.ProtocolTCP),
+					Port:     ptr.To(intstr.FromInt(LivenessProbePort)),
 				}},
 			}},
 		}
@@ -569,15 +570,8 @@ func (r *TrueNASCSIReconciler) reconcileConfigMap(ctx context.Context, csi *csiv
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, cm, func() error {
 		cm.Labels = ComponentLabels("")
-		cm.Data = map[string]string{
-			"truenasURL":      csi.Spec.TrueNASURL,
-			"defaultPool":     csi.Spec.DefaultPool,
-			"nfsServer":       csi.Spec.NFSServer,
-			"iscsiPortal":     csi.Spec.ISCSIPortal,
-			"nvmeofPortal":    csi.Spec.NVMeOFPortal,
-			"iscsiIQNBase":    csi.Spec.ISCSIIQNBase,
-			"truenasInsecure": fmt.Sprintf("%t", csi.Spec.InsecureSkipTLS),
-		}
+		// Data field generation is lifted to be leveraged by other functions
+		cm.Data = buildConfigMapData(csi)
 		return nil
 	})
 	return err
@@ -608,7 +602,8 @@ func (r *TrueNASCSIReconciler) reconcileControllerDeployment(ctx context.Context
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ComponentLabels("controller"),
+					Annotations: podTemplateAnnotations(csi),
+					Labels:      ComponentLabels("controller"),
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: ControllerServiceAccount,
@@ -652,7 +647,8 @@ func (r *TrueNASCSIReconciler) reconcileNodeDaemonSet(ctx context.Context, csi *
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ComponentLabels("node"),
+					Annotations: podTemplateAnnotations(csi),
+					Labels:      ComponentLabels("node"),
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: NodeServiceAccount,
@@ -891,21 +887,4 @@ func (r *TrueNASCSIReconciler) buildLivenessProbeContainer() corev1.Container {
 		},
 		VolumeMounts: []corev1.VolumeMount{socketDirVolumeMount()},
 	})
-}
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *TrueNASCSIReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&csiv1alpha1.TrueNASCSI{}).
-		Owns(&appsv1.Deployment{}).
-		Owns(&appsv1.DaemonSet{}).
-		Owns(&corev1.ConfigMap{}).
-		Owns(&rbacv1.ClusterRole{}).
-		Owns(&rbacv1.ClusterRoleBinding{}).
-		Owns(&corev1.ServiceAccount{}).
-		Owns(&networkingv1.NetworkPolicy{}).
-		Owns(&storagev1.CSIDriver{}).
-		Owns(&unstructured.Unstructured{Object: map[string]any{"apiVersion": "security.openshift.io/v1", "kind": "SecurityContextConstraints"}}).
-		Named("truenascsi").
-		Complete(r)
 }

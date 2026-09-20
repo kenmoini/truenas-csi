@@ -1,7 +1,11 @@
 package controller
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +39,47 @@ func buildTrueNASEnvVars(csi *csiv1alpha1.TrueNASCSI) []corev1.EnvVar {
 	baseEnvVars = append(baseEnvVars, proxy.ReadProxyVarsFromEnv()...)
 
 	return baseEnvVars
+}
+
+// buildConfigMapData returns the driver configuration the CSI workloads read
+// through the ConfigMap. The workload reconcilers hash the same map to decide
+// when the pods need a new revision, so this must stay the single source.
+func buildConfigMapData(csi *csiv1alpha1.TrueNASCSI) map[string]string {
+	return map[string]string{
+		"truenasURL":      csi.Spec.TrueNASURL,
+		"defaultPool":     csi.Spec.DefaultPool,
+		"nfsServer":       csi.Spec.NFSServer,
+		"iscsiPortal":     csi.Spec.ISCSIPortal,
+		"nvmeofPortal":    csi.Spec.NVMeOFPortal,
+		"iscsiIQNBase":    csi.Spec.ISCSIIQNBase,
+		"truenasInsecure": fmt.Sprintf("%t", csi.Spec.InsecureSkipTLS),
+	}
+}
+
+// configHash returns a stable SHA-256 over the driver configuration. The
+// workload reconcilers stamp it on the pod template, so a configuration change
+// rolls the pods. The value depends only on the content, so repeated reconciles
+// with an unchanged configuration produce an identical annotation and no write.
+func configHash(csi *csiv1alpha1.TrueNASCSI) string {
+	data := buildConfigMapData(csi)
+	keys := make([]string, 0, len(data))
+	for k := range data {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	h := sha256.New()
+	for _, k := range keys {
+		fmt.Fprintf(h, "%s=%s\n", k, data[k]) //nolint:errcheck
+	}
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// podTemplateAnnotations returns the annotations to stamp on a workload's pod
+// template. The map is never empty: it always carries the configuration hash,
+// which is what rolls the pods when the configuration changes.
+func podTemplateAnnotations(csi *csiv1alpha1.TrueNASCSI) map[string]string {
+	return map[string]string{ConfigHashAnnotation: configHash(csi)}
 }
 
 // fieldRefEnvVar creates an environment variable from a field reference

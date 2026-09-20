@@ -12,6 +12,12 @@ const (
 
 	// FinalizerName is the finalizer used to clean up resources
 	FinalizerName = "csi.truenas.io/finalizer"
+
+	// ConfigHashAnnotation carries a hash of the driver configuration on the
+	// controller and node pod templates. A configuration change moves the hash,
+	// which rolls the pods. An unchanged configuration produces the same value,
+	// so reconciles that change nothing write nothing.
+	ConfigHashAnnotation = "csi.truenas.io/config-hash"
 )
 
 // Root Certificate Bundle Volume constants
