@@ -78,15 +78,15 @@ help: ## Display this help
 
 .PHONY: build
 build: ## Build the CSI driver binary
-	$(GO) build $(GOFLAGS) -ldflags '$(LDFLAGS)' -o bin/truenas-csi cmd/main.go
+	GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -ldflags '$(LDFLAGS)' -o bin/truenas-csi cmd/main.go
 
 .PHONY: test
 test: ## Run unit tests
-	$(GO) test ./... -v
+	GOOS=linux GOARCH=amd64 $(GO) test ./... -v
 
 .PHONY: test-sanity
 test-sanity: ## Run CSI sanity tests
-	$(GO) test ./test/sanity/... -v
+	GOOS=linux GOARCH=amd64 $(GO) test ./test/sanity/... -v
 
 .PHONY: fmt
 fmt: ## Format all Go code with gofumpt (both modules)
@@ -164,7 +164,7 @@ docker-push: ## Push standard Docker image
 
 .PHONY: build-ubi
 build-ubi: ## Build UBI-based driver image for Red Hat certification
-	$(CONTAINER_TOOL)  build --pull -f Dockerfile.ubi --provenance=false --sbom=false --build-arg VERSION=$(VERSION) -t $(DRIVER_IMAGE):$(IMG_TAG) .
+	$(CONTAINER_TOOL)  build --pull -f Dockerfile.ubi --build-arg VERSION=$(VERSION) -t $(DRIVER_IMAGE):$(IMG_TAG) .
 
 .PHONY: push-ubi
 push-ubi: ## Push UBI-based driver image
