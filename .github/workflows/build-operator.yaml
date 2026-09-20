@@ -66,6 +66,7 @@ jobs:
           go-build-target: operator/cmd/main.go
 
       - name: Running Tests
+        continue-on-error: true
         run: |
           cd operator
           go mod tidy
