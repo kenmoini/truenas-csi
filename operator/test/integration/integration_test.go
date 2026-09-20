@@ -27,7 +27,7 @@ import (
 // Optional environment variables:
 //   - TRUENAS_POOL: Pool to use for tests (default: "tank")
 //   - TRUENAS_INSECURE: Skip TLS verification (default: "true")
-//   - OPERATOR_IMAGE: Operator image to deploy (default: quay.io/truenas_solutions/truenas-csi-operator:v0.1.0)
+//   - OPERATOR_IMAGE: Operator image to deploy (default: ghcr.io/kenmoini/truenas-csi-operator:latest)
 //   - DRIVER_IMAGE: CSI driver image (default: uses operator default)
 //   - SKIP_OPERATOR_DEPLOY: Skip operator deployment if already deployed (default: "false")
 //
@@ -82,7 +82,7 @@ func TestIntegration(t *testing.T) {
 
 	operatorImage = os.Getenv("OPERATOR_IMAGE")
 	if operatorImage == "" {
-		operatorImage = "quay.io/truenas_solutions/truenas-csi-operator:v0.1.0"
+		operatorImage = "ghcr.io/kenmoini/truenas-csi-operator:latest"
 	}
 
 	driverImage = os.Getenv("DRIVER_IMAGE")
