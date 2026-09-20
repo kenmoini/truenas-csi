@@ -3,8 +3,8 @@ module github.com/truenas/truenas-csi/operator
 go 1.26.0
 
 require (
-	github.com/onsi/ginkgo/v2 v2.27.4
-	github.com/onsi/gomega v1.39.0
+	github.com/onsi/ginkgo/v2 v2.32.2
+	github.com/onsi/gomega v1.40.0
 	github.com/openshift/api v0.0.0-20260901194050-81278704edb0
 	github.com/operator-framework/operator-lib v0.19.0
 	k8s.io/api v0.37.0
@@ -49,7 +49,7 @@ require (
 	github.com/google/cel-go v0.29.2 // indirect
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
+	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
