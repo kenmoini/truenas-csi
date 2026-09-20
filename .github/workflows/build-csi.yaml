@@ -135,6 +135,8 @@ jobs:
           file: ${{ env.CONTAINERFILE_PATH }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
+          build-args: |
+            VERSION=${{ github.ref_name }
           #push: true
           #platforms: linux/amd64, linux/arm64
           #provenance: mode=max
