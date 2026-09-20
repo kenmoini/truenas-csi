@@ -37,6 +37,8 @@ jobs:
   test-and-tap:
     name: Run tests and submit dependencies for TAP
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Clone the code
         uses: actions/checkout@v7
