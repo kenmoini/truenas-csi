@@ -2,7 +2,7 @@
 # Multi-stage build: CentOS for packages, UBI for certified base
 
 # Stage 1: Build the Go binary
-FROM registry.access.redhat.com/ubi10/go-toolset:latest AS builder
+FROM registry.access.redhat.com/hi/go:1.26 AS builder
 
 WORKDIR /build
 USER root
@@ -22,12 +22,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/truen
 FROM quay.io/centos/centos:stream10 AS packages
 
 RUN dnf -y update \
-    && dnf install -y --setopt=install_weak_deps=False \
-    nfs-utils \
-    iscsi-initiator-utils \
-    nvme-cli \
-    e2fsprogs \
-    xfsprogs \
+    && dnf install -y --setopt=install_weak_deps=False nfs-utils iscsi-initiator-utils nvme-cli e2fsprogs xfsprogs \
     && dnf clean all
 
 # Stage the nvme binary and its shared libraries (libnvme, libjson-c, crypto, ...)
@@ -60,11 +55,8 @@ LABEL name="truenas-csi" \
       maintainer="TrueNAS <support@truenas.com>"
 
 # Install base packages available in UBI
-RUN microdnf update -y \
-    && microdnf install -y --setopt=install_weak_deps=0 \
-    ca-certificates \
-    util-linux \
-    procps-ng \
+RUN microdnf update -y || microdnf update -y --disablerepo="rhel-10*" \
+    && microdnf install -y --setopt=install_weak_deps=0 ca-certificates util-linux procps-ng || microdnf install -y --setopt=install_weak_deps=0 ca-certificates util-linux procps-ng --disablerepo="rhel-10*" \
     && microdnf clean all \
     && rm -rf /var/cache/yum
 
