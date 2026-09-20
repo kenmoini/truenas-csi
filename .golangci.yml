@@ -1,4 +1,31 @@
 version: "2"
+run:
+  allow-parallel-runners: true
+linters:
+  default: none
+  enable:
+    - copyloopvar
+    # - dupl
+    - errcheck
+    - ginkgolinter
+    # - goconst # Very annoying with RBAC
+    - gocyclo
+    - govet
+    - ineffassign
+    # - lll # Line length limiter
+    - misspell
+    - nakedret
+    - prealloc
+    - revive
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+  settings:
+    revive:
+      rules:
+        - name: comment-spacings
+        - name: import-shadowing
 # Linters are left at golangci-lint's defaults; only the formatter is pinned, so
 # `make lint` and `make fmt` agree on one style. gofumpt is a strict superset of
 # gofmt, so gofmt-clean code stays clean.
