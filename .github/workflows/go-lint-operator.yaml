@@ -1,0 +1,50 @@
+# Always run basic Golang linting
+name: Operator - Go Lint
+
+on:
+  push:
+    paths-ignore:
+      - README.md
+      - .github/dependabot.yml
+      - .github/workflows/**
+      - docs/
+      - examples/
+      - deploy/
+      - hack/
+      - charts/
+      - pkg/
+      - test/
+  pull_request:
+    paths-ignore:
+      - README.md
+      - .github/dependabot.yml
+      - .github/workflows/**
+      - docs/
+      - examples/
+      - deploy/
+      - hack/
+      - charts/
+      - pkg/
+      - test/
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  lint-operator:
+    name: Run Operator Golang Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: operator/go.mod
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13
+          working-directory: operator

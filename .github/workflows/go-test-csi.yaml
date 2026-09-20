@@ -1,0 +1,45 @@
+# Always run basic Golang tests
+name: CSI - Go Tests
+
+on:
+  push:
+    paths-ignore:
+      - README.md
+      - .github/dependabot.yml
+      - .github/workflows/**
+      - docs/
+      - examples/
+      - deploy/
+      - hack/
+      - charts/
+      - operator/
+  # Disable pull_request to prevent malicious PRs
+  # pull_request:
+  #   paths-ignore:
+  #     - README.md
+  #     - DEV.md
+  #     - RELEASE.md
+  #     - .github/dependabot.yml
+  #     - .github/workflows/**
+  #     - .devcontainer/**
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test-csi:
+    name: Run CSI Golang Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Running Tests
+        run: |
+          go mod tidy
+          make test

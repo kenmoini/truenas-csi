@@ -1,5 +1,5 @@
 # Always run basic Golang linting
-name: Lint
+name: CSI - Go Lint
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
       - deploy/
       - hack/
       - charts/
+      - operator/
   pull_request:
     paths-ignore:
       - README.md
@@ -22,6 +23,7 @@ on:
       - deploy/
       - hack/
       - charts/
+      - operator/
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -43,21 +45,3 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.13
-
-  lint-operator:
-    name: Run Operator Golang Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone the code
-        uses: actions/checkout@v7
-
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: operator/go.mod
-
-      - name: Run linter
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.13
-          working-directory: operator

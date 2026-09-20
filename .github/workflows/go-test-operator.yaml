@@ -1,5 +1,5 @@
 # Always run basic Golang tests
-name: Tests
+name: Operator - Go Tests
 
 on:
   push:
@@ -12,6 +12,8 @@ on:
       - deploy/
       - hack/
       - charts/
+      - pkg/
+      - test/
   # Disable pull_request to prevent malicious PRs
   # pull_request:
   #   paths-ignore:
@@ -26,22 +28,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-csi:
-    name: Run CSI Golang Test Suite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone the code
-        uses: actions/checkout@v7
-
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-
-      - name: Running Tests
-        run: |
-          go mod tidy
-          make test
 
   test-operator:
     name: Run Operator Golang Test Suite
