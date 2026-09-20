@@ -53,7 +53,7 @@ jobs:
           working-directory: operator
 
       - name: Run snapshot action to submit dependencies
-        uses: actions/go-dependency-submission@v2
+        uses: actions/go-dependency-submission@5b7d83fc0451f125096d30e1bf1deed84eedfa06
         with:
           # Required: Define the repo path to the go.mod file used by the
           # build target
