@@ -2,7 +2,7 @@
 # Multi-stage build: CentOS for packages, UBI for certified base
 
 # Stage 1: Build the Go binary
-FROM registry.access.redhat.com/hi/go:1.26 AS builder
+FROM registry.access.redhat.com/hi/go:1.27 AS builder
 
 WORKDIR /build
 USER root
