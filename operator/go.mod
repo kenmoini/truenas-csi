@@ -3,7 +3,7 @@ module github.com/truenas/truenas-csi/operator
 go 1.26.0
 
 require (
-	github.com/onsi/ginkgo/v2 v2.32.2
+	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.43.0
 	github.com/openshift/api v0.0.0-20260901194050-81278704edb0
 	github.com/operator-framework/operator-lib v0.19.0
