@@ -9,7 +9,7 @@ require (
 	github.com/kubernetes-csi/csi-lib-iscsi v0.0.0-20240130114156-dd26709d0dcc
 	github.com/kubernetes-csi/csi-test/v5 v5.6.0
 	github.com/prometheus/client_golang v1.24.1
-	golang.org/x/sync v0.23.0
+	golang.org/x/sync v0.24.0
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
